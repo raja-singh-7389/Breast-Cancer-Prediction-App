@@ -6,7 +6,7 @@ import numpy as np
 
 
 def get_clean_data():
-  data = pd.read_csv("data/data.csv")
+  data = pd.read_csv("data.csv")
   
   data = data.drop(['Unnamed: 32', 'id'], axis=1)
   
@@ -172,7 +172,7 @@ def main():
     initial_sidebar_state="expanded"
   )
   
-  with open("assets/style.css") as f:
+  with open("style.css") as f:
     st.markdown("<style>{}</style>".format(f.read()), unsafe_allow_html=True)
   
   input_data = add_sidebar()
