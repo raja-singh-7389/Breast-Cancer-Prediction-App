@@ -1,7 +1,7 @@
 numpy
 pandas
-pickle
+scikit-learn
+matplotlib
 plotly
-scikit_learn
 streamlit
-altair
+joblib
