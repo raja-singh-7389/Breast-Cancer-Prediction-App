@@ -7,9 +7,6 @@ import os
 
 
 def get_clean_data():
-    """
-    Load and preprocess the dataset.
-    """
     try:
         data = pd.read_csv("data.csv")
         # Drop unnecessary columns if they exist
@@ -29,9 +26,6 @@ def get_clean_data():
 
 
 def add_sidebar():
-    """
-    Add input sliders for user-defined measurements.
-    """
     st.sidebar.header("Cell Nuclei Measurements")
     data = get_clean_data()
 
@@ -82,9 +76,6 @@ def add_sidebar():
 
 
 def get_scaled_values(input_dict):
-    """
-    Scale the input values to be within 0 and 1.
-    """
     data = get_clean_data()
     X = data.drop(['diagnosis'], axis=1)
 
@@ -102,9 +93,6 @@ def get_scaled_values(input_dict):
 
 
 def get_radar_chart(input_data):
-    """
-    Generate a radar chart visualization for the input data.
-    """
     input_data = get_scaled_values(input_data)
 
     categories = ['Radius', 'Texture', 'Perimeter', 'Area', 
@@ -160,9 +148,6 @@ def get_radar_chart(input_data):
 
 
 def add_predictions(input_data):
-    """
-    Load the model and scaler, then predict the diagnosis.
-    """
     try:
         model = joblib.load("model/model.joblib")
         scaler = joblib.load("model/scaler.joblib")
@@ -194,9 +179,6 @@ def add_predictions(input_data):
 
 
 def main():
-    """
-    Main function to run the Streamlit app.
-    """
     st.set_page_config(
         page_title="Breast Cancer Predictor",
         layout="wide",
