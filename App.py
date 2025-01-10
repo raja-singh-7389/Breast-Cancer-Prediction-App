@@ -11,7 +11,7 @@ def get_clean_data():
     Load and preprocess the dataset.
     """
     try:
-        data = pd.read_csv("data/data.csv")
+        data = pd.read_csv("data.csv")
         # Drop unnecessary columns if they exist
         if 'Unnamed: 32' in data.columns and 'id' in data.columns:
             data = data.drop(['Unnamed: 32', 'id'], axis=1)
