@@ -1,5 +1,5 @@
 import streamlit as st
-import pickle
+import joblib
 import pandas as pd
 import plotly.graph_objects as go
 import numpy as np
@@ -7,25 +7,34 @@ import os
 
 
 def get_clean_data():
-    data = pd.read_csv("data.csv")
-    
-    # Drop unnecessary columns if they exist
-    if 'Unnamed: 32' in data.columns and 'id' in data.columns:
-        data = data.drop(['Unnamed: 32', 'id'], axis=1)
-    
-    # Handle missing values (optional, depending on the dataset)
-    data = data.dropna()
-    
-    # Map diagnosis to binary values
-    data['diagnosis'] = data['diagnosis'].map({'M': 1, 'B': 0})
-    
-    return data
+    """
+    Load and preprocess the dataset.
+    """
+    try:
+        data = pd.read_csv("data/data.csv")
+        # Drop unnecessary columns if they exist
+        if 'Unnamed: 32' in data.columns and 'id' in data.columns:
+            data = data.drop(['Unnamed: 32', 'id'], axis=1)
+        # Handle missing values
+        data = data.dropna()
+        # Map diagnosis to binary values
+        data['diagnosis'] = data['diagnosis'].map({'M': 1, 'B': 0})
+        return data
+    except FileNotFoundError:
+        st.error("Data file not found. Please ensure 'data/data.csv' exists.")
+        st.stop()
+    except Exception as e:
+        st.error(f"Error loading data: {e}")
+        st.stop()
 
 
 def add_sidebar():
+    """
+    Add input sliders for user-defined measurements.
+    """
     st.sidebar.header("Cell Nuclei Measurements")
     data = get_clean_data()
-    
+
     slider_labels = [
         ("Radius (mean)", "radius_mean"),
         ("Texture (mean)", "texture_mean"),
@@ -58,7 +67,7 @@ def add_sidebar():
         ("Symmetry (worst)", "symmetry_worst"),
         ("Fractal dimension (worst)", "fractal_dimension_worst"),
     ]
-    
+
     input_dict = {}
     for label, key in slider_labels:
         max_value = float(data[key].max())
@@ -67,15 +76,18 @@ def add_sidebar():
             label,
             min_value=0.0,
             max_value=max_value,
-            value=mean_value
+            value=mean_value,
         )
     return input_dict
 
 
 def get_scaled_values(input_dict):
+    """
+    Scale the input values to be within 0 and 1.
+    """
     data = get_clean_data()
     X = data.drop(['diagnosis'], axis=1)
-    
+
     scaled_dict = {}
     for key, value in input_dict.items():
         max_val = X[key].max()
@@ -85,13 +97,16 @@ def get_scaled_values(input_dict):
         else:
             scaled_value = (value - min_val) / (max_val - min_val)
         scaled_dict[key] = scaled_value
-    
+
     return scaled_dict
 
 
 def get_radar_chart(input_data):
+    """
+    Generate a radar chart visualization for the input data.
+    """
     input_data = get_scaled_values(input_data)
-    
+
     categories = ['Radius', 'Texture', 'Perimeter', 'Area', 
                   'Smoothness', 'Compactness', 
                   'Concavity', 'Concave Points',
@@ -140,16 +155,19 @@ def get_radar_chart(input_data):
             )),
         showlegend=True
     )
-    
+
     return fig
 
 
 def add_predictions(input_data):
+    """
+    Load the model and scaler, then predict the diagnosis.
+    """
     try:
-        model = pickle.load(open("model/model.pkl", "rb"))
-        scaler = pickle.load(open("model/scaler.pkl", "rb"))
+        model = joblib.load("model/model.joblib")
+        scaler = joblib.load("model/scaler.joblib")
     except FileNotFoundError:
-        st.error("Model or scaler file not found. Please check the 'model/' directory.")
+        st.error("Model or scaler file not found. Please ensure they exist in the 'model/' directory.")
         return
     except Exception as e:
         st.error(f"Error loading model or scaler: {e}")
@@ -167,7 +185,7 @@ def add_predictions(input_data):
     if prediction[0] == 0:
         st.markdown("<span class='diagnosis benign'>Benign</span>", unsafe_allow_html=True)
     else:
-        st.markdown("<span class='diagnosis malicious'>Malignant</span>", unsafe_allow_html=True)
+        st.markdown("<span class='diagnosis malignant'>Malignant</span>", unsafe_allow_html=True)
 
     st.write(f"Probability of being benign: {probability[0][0]:.2f}")
     st.write(f"Probability of being malignant: {probability[0][1]:.2f}")
@@ -176,20 +194,24 @@ def add_predictions(input_data):
 
 
 def main():
+    """
+    Main function to run the Streamlit app.
+    """
     st.set_page_config(
         page_title="Breast Cancer Predictor",
         layout="wide",
         initial_sidebar_state="expanded"
     )
-    
-    try:
+
+    # Apply custom styles if available
+    if os.path.exists("style.css"):
         with open("style.css") as f:
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-    except FileNotFoundError:
-        pass
 
+    # Sidebar inputs
     input_data = add_sidebar()
 
+    # Main content
     with st.container():
         st.title("Breast Cancer Predictor")
         st.write("This app predicts whether a breast mass is benign or malignant using machine learning.")
