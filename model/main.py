@@ -34,7 +34,7 @@ def create_model(data):
 
 def get_clean_data():
     # Load and clean data
-    data = pd.read_csv("data/data.csv")
+    data = pd.read_csv("data.csv")
     
     # Drop unnecessary columns
     data = data.drop(['Unnamed: 32', 'id'], axis=1)
